@@ -1,17 +1,22 @@
 """应用全局配置管理（pydantic-settings v2）"""
-from functools import lru_cache
-from typing import List, Optional
 import json
+from functools import lru_cache
+from pathlib import Path
+from typing import List, Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# 项目根目录 = backend 的上一级；.env 用绝对路径加载（不依赖启动目录）
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ENV_FILE = PROJECT_ROOT / ".env"
 
 
 class Settings(BaseSettings):
     """应用配置，从 .env 读取"""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(ENV_FILE),
         env_file_encoding="utf-8",
         extra="ignore",
     )

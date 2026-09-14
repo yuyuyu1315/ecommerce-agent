@@ -8,7 +8,7 @@
 | 阶段 | 内容 | 状态 |
 |---|---|---|
 | 0 | 项目骨架：目录 / venv / 依赖 / SQL 建库 / 后端可启动 | ✅ 完成（v0.1.0） |
-| 1 | 数据层：SQLAlchemy 模型 + 种子数据 + 基础 API | ⏳ 待做 |
+| 1 | 数据层：SQLAlchemy 模型 + 种子数据 + 基础 API | ✅ 完成（v0.2.0） |
 | 2 | Agent：选品 Agent（接 DeepSeek）+ API | ⏳ 待做 |
 | 3 | RAG：ChromaDB 知识库 + 问答 | ⏳ 待做 |
 | 4 | 前端：Vue3 + Element Plus 看板 + 聊天页 | ⏳ 待做 |
@@ -21,14 +21,17 @@
 ecommerce-agent/
 ├── backend/            # 后端（FastAPI + LangChain + SQLAlchemy）
 │   ├── .venv/          # 虚拟环境（Python 3.10，D 盘）
-│   ├── main.py         # 入口
+│   ├── main.py         # 入口（v0.2.0：数据层已接入）
 │   ├── config.py       # 配置（.env 读取）
 │   ├── database.py     # 异步 SQLAlchemy
-│   └── (models/ agents/ rag/ api/ ... 后续阶段补齐)
+│   ├── models/         # SQLAlchemy 模型（user/product/knowledge，14 表）
+│   ├── api/            # 路由（products / dashboard）
+│   ├── seed.py         # 种子数据脚本
+│   └── (agents/ rag/ ... 后续阶段补齐)
 ├── frontend/           # 前端（Vue 3，待建）
 ├── sql/                # 数据库脚本
 │   ├── init_database.sql  # PostgreSQL 15 原版（Docker 部署用）
-│   ├── init_sqlite.sql    # SQLite 本地版（当前使用）
+│   ├── init_sqlite.sql    # SQLite 建库参考脚本
 │   └── seed_data.sql      # 示例数据（PostgreSQL 版）
 ├── data/               # 本地数据（SQLite / ChromaDB）
 ├── tests/
@@ -48,6 +51,18 @@ python -m uvicorn backend.main:app --reload --port 8001
 
 - API 文档：http://127.0.0.1:8001/docs
 - 健康检查：http://127.0.0.1:8001/health
+- 产品列表：http://127.0.0.1:8001/api/products
+- 看板汇总：http://127.0.0.1:8001/api/dashboard/summary
+
+## 种子数据
+
+数据库已内置演示数据（8 产品 / 12 分类 / 9 竞品价 / 8 评价 / 3 活动 / 4 知识库文档 / 3 Agent 任务记录）。
+
+重灌种子数据（会重置数据库）：
+
+```bash
+python -m backend.seed   # 在 D:\ecommerce-agent 下执行
+```
 
 ## 关键配置（.env）
 

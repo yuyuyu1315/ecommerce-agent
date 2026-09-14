@@ -1,12 +1,17 @@
-"""电商运营 Agent - FastAPI 主入口（骨架版 v0.1.0）"""
+"""电商运营 Agent - FastAPI 主入口（v0.2.0：接入数据层与基础 API）"""
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import backend.models  # noqa: F401  确保所有模型注册到 Base.metadata
+from backend.api import dashboard, products
 from backend.config import get_settings
 from backend.database import close_database, init_database
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 @asynccontextmanager
@@ -15,8 +20,8 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
 
     # 启动时
-    os.makedirs("./data", exist_ok=True)
-    os.makedirs("./logs", exist_ok=True)
+    os.makedirs(PROJECT_ROOT / "data", exist_ok=True)
+    os.makedirs(PROJECT_ROOT / "logs", exist_ok=True)
 
     await init_database()
 
@@ -50,6 +55,10 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # 注册路由
+    app.include_router(products.router, prefix="/api/products", tags=["产品"])
+    app.include_router(dashboard.router, prefix="/api/dashboard", tags=["看板"])
 
     # 健康检查
     @app.get("/health")
