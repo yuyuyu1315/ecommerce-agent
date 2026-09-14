@@ -8,6 +8,9 @@ venv/
 data/
 logs/
 
+# 向量模型缓存（USERPROFILE 重定向目录）
+.home/
+
 # 密钥
 .env
 
