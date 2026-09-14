@@ -1,4 +1,4 @@
-"""Agent 基类：统一 LLM 构建、JSON 解析、任务记录与调用计时"""
+"""Agent 基类：统一 LLM 构建、JSON/文本调用、任务记录与调用计时"""
 import json
 import time
 from typing import Any, Dict, Optional, Tuple
@@ -52,28 +52,31 @@ def _usage_of(response) -> Optional[Dict[str, int]]:
 
 
 class BaseAgent:
-    """所有 Agent 的基类：统一 LLM、JSON 输出与调用计时"""
+    """所有 Agent 的基类：统一 LLM（JSON 模式与自由文本模式）"""
 
     name: str = "BaseAgent"
     default_system_prompt: str = "你是一个专业的电商运营助手，请用 JSON 返回结果。"
 
     def __init__(self):
         self.settings = get_settings()
-        self.llm = self._build_llm()
+        self.llm = self._build_llm(require_json=True)
+        self.text_llm = self._build_llm(require_json=False)
 
-    def _build_llm(self) -> ChatOpenAI:
+    def _build_llm(self, require_json: bool = True) -> ChatOpenAI:
         api_key = self.settings.OPENAI_API_KEY
         if not api_key or "xxxx" in api_key:
             raise RuntimeError("OPENAI_API_KEY 未配置，请在 .env 中填写 DeepSeek Key")
-        return ChatOpenAI(
+        kwargs: Dict[str, Any] = dict(
             model=self.settings.OPENAI_MODEL,
             api_key=api_key,
             base_url=self.settings.OPENAI_BASE_URL,
             temperature=self.settings.LLM_TEMPERATURE,
             timeout=120,
             max_retries=2,
-            response_format={"type": "json_object"},
         )
+        if require_json:
+            kwargs["response_format"] = {"type": "json_object"}
+        return ChatOpenAI(**kwargs)
 
     async def ainvoke_json(
         self, system_prompt: str, user_prompt: str
@@ -86,10 +89,19 @@ class BaseAgent:
                 ("human", user_prompt),
             ]
         )
-        elapsed_ms = int((time.perf_counter() - start) * 1000)
         parsed = extract_json(response.content)
-        parsed["_meta"] = {
-            "duration_ms": elapsed_ms,
-            "usage": _usage_of(response),
-        }
+        parsed["_meta"] = {"duration_ms": int((time.perf_counter() - start) * 1000)}
         return parsed, _usage_of(response)
+
+    async def ainvoke_text(
+        self, system_prompt: str, user_prompt: str
+    ) -> Tuple[str, Optional[Dict[str, int]]]:
+        """调用 LLM（自由文本模式），返回 (回答文本, token 用量)"""
+        start = time.perf_counter()
+        response = await self.text_llm.ainvoke(
+            [
+                ("system", system_prompt),
+                ("human", user_prompt),
+            ]
+        )
+        return str(response.content).strip(), _usage_of(response)

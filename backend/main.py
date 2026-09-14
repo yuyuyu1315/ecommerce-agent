@@ -7,9 +7,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import backend.models  # noqa: F401  确保所有模型注册到 Base.metadata
-from backend.api import agents, dashboard, products
+from backend.api import agents, dashboard, products, rag
 from backend.config import get_settings
 from backend.database import close_database, init_database
+from backend.rag import rag_engine
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -24,6 +25,13 @@ async def lifespan(app: FastAPI):
     os.makedirs(PROJECT_ROOT / "logs", exist_ok=True)
 
     await init_database()
+
+    # 启动时构建 RAG 向量索引（失败不阻塞启动，可随时通过接口重建）
+    try:
+        result = await rag_engine.rebuild()
+        print(f"✅ RAG 索引构建完成：共 {result['indexed']} 条文档")
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️ RAG 索引构建失败（可稍后调用 POST /api/rag/rebuild）：{e}")
 
     print(f"✅ {settings.APP_NAME} v{settings.APP_VERSION} 启动完成")
 
@@ -60,6 +68,7 @@ def create_app() -> FastAPI:
     app.include_router(products.router, prefix="/api/products", tags=["产品"])
     app.include_router(dashboard.router, prefix="/api/dashboard", tags=["看板"])
     app.include_router(agents.router, prefix="/api/agents", tags=["Agent"])
+    app.include_router(rag.router, prefix="/api/rag", tags=["RAG"])
 
     # 健康检查
     @app.get("/health")

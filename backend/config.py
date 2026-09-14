@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # ============ 应用基础配置 ============
     APP_NAME: str = Field(default="电商运营Agent", description="应用名称")
-    APP_VERSION: str = Field(default="0.3.0", description="版本号")
+    APP_VERSION: str = Field(default="0.4.0", description="版本号")
     DEBUG: bool = Field(default=False, description="调试模式")
     SECRET_KEY: str = Field(default="change-me-in-production", description="密钥")
 
@@ -58,7 +58,10 @@ class Settings(BaseSettings):
         default="sentence-transformers/all-MiniLM-L6-v2",
         description="嵌入模型",
     )
-    VECTOR_DB_PATH: str = Field(default="./data/chromadb", description="向量库路径")
+    VECTOR_DB_PATH: str = Field(
+        default=str(PROJECT_ROOT / "data" / "chromadb"),
+        description="向量库路径（绝对路径，落在 D 盘项目内）",
+    )
     RAG_TOP_K: int = Field(default=5, description="检索数量")
 
     # ============ API 配置 ============

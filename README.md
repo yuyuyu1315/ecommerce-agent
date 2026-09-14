@@ -10,7 +10,7 @@
 | 0 | 项目骨架：目录 / venv / 依赖 / SQL 建库 / 后端可启动 | ✅ 完成（v0.1.0） |
 | 1 | 数据层：SQLAlchemy 模型 + 种子数据 + 基础 API | ✅ 完成（v0.2.0） |
 | 2 | Agent：选品 Agent（接 DeepSeek）+ API | ✅ 完成（v0.3.0） |
-| 3 | RAG：ChromaDB 知识库 + 问答 | ⏳ 待做 |
+| 3 | RAG：ChromaDB 知识库 + 问答 | ✅ 完成（v0.4.0） |
 | 4 | 前端：Vue3 + Element Plus 看板 + 聊天页 | ⏳ 待做 |
 | 5 | 补齐定价/营销 Agent + 全部页面 + 联调 | ⏳ 待做 |
 | 6 | Docker 部署（可选） | ⏳ 待做 |
@@ -26,7 +26,8 @@ ecommerce-agent/
 │   ├── database.py     # 异步 SQLAlchemy
 │   ├── models/         # SQLAlchemy 模型（user/product/knowledge，14 表）
 │   ├── agents/         # Agent（base 基类 + selection 选品 Agent）
-│   ├── api/            # 路由（products / dashboard / agents）
+│   ├── rag/            # RAG 引擎（ChromaDB 检索 + DeepSeek 生成）
+│   ├── api/            # 路由（products / dashboard / agents / rag）
 │   ├── seed.py         # 种子数据脚本
 │   └── (agents/ rag/ ... 后续阶段补齐)
 ├── frontend/           # 前端（Vue 3，待建）
@@ -41,13 +42,11 @@ ecommerce-agent/
 
 ## 运行方法（后端）
 
-```bash
-# 激活虚拟环境
-D:\ecommerce-agent\backend\.venv\Scripts\activate
-
-# 启动（端口 8001，避开旧项目占用的 8000）
+```powershell
+# 启动（端口 8001；USERPROFILE 指向 D 盘，让向量模型缓存落在 D 盘项目内）
+$env:USERPROFILE = 'D:\ecommerce-agent\.home'
 cd /d D:\ecommerce-agent
-python -m uvicorn backend.main:app --reload --port 8001
+backend\.venv\Scripts\python.exe -m uvicorn backend.main:app --reload --reload-dir D:\ecommerce-agent --port 8001
 ```
 
 - API 文档：http://127.0.0.1:8001/docs
@@ -56,6 +55,7 @@ python -m uvicorn backend.main:app --reload --port 8001
 - 看板汇总：http://127.0.0.1:8001/api/dashboard/summary
 - 选品记录：http://127.0.0.1:8001/api/agents/selection
 - Agent 任务：http://127.0.0.1:8001/api/agents/tasks
+- 知识库问答：POST /api/rag/query（body: {"question": "..."}）
 
 ## Agent 接口
 
@@ -67,6 +67,23 @@ POST /api/agents/selection/analyze
 # 审批选品建议
 POST /api/agents/selection/{id}/approve
 ```
+
+## RAG 接口
+
+```bash
+# 知识库问答（向量检索 + DeepSeek 结合资料回答，带来源标注）
+POST /api/rag/query
+# body: {"question": "如何做好电商选品？", "top_k": 4}
+
+# 重建向量索引（知识库文档 + 产品数据，启动时自动执行）
+POST /api/rag/rebuild
+
+# 知识库文档列表
+GET /api/rag/documents
+```
+
+> 向量模型：Chroma 内置 ONNX MiniLM（384 维，模型缓存位于 `D:\ecommerce-agent\.home\.cache\chroma`）。
+> 中文语义检索如需更强召回，可后续换装 BGE 中文向量模型。
 
 ## 种子数据
 
