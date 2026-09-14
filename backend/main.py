@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import backend.models  # noqa: F401  确保所有模型注册到 Base.metadata
-from backend.api import agents, dashboard, products, rag
+from backend.api import agents, dashboard, marketing, pricing, products, rag
 from backend.config import get_settings
 from backend.database import close_database, init_database
 from backend.rag import rag_engine
@@ -68,6 +68,8 @@ def create_app() -> FastAPI:
     app.include_router(products.router, prefix="/api/products", tags=["产品"])
     app.include_router(dashboard.router, prefix="/api/dashboard", tags=["看板"])
     app.include_router(agents.router, prefix="/api/agents", tags=["Agent"])
+    app.include_router(pricing.router, prefix="/api/agents", tags=["Agent-定价"])
+    app.include_router(marketing.router, prefix="/api/agents", tags=["Agent-营销"])
     app.include_router(rag.router, prefix="/api/rag", tags=["RAG"])
 
     # 健康检查

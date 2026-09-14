@@ -24,6 +24,14 @@
           <el-icon><MagicStick /></el-icon>
           <span>选品 Agent</span>
         </el-menu-item>
+        <el-menu-item index="/pricing">
+          <el-icon><PriceTag /></el-icon>
+          <span>定价 Agent</span>
+        </el-menu-item>
+        <el-menu-item index="/marketing">
+          <el-icon><Promotion /></el-icon>
+          <span>营销 Agent</span>
+        </el-menu-item>
         <el-menu-item index="/rag">
           <el-icon><ChatDotRound /></el-icon>
           <span>知识问答</span>
@@ -34,7 +42,7 @@
     <el-container>
       <el-header class="app-header">
         <span class="page-title">{{ $route.meta.title }}</span>
-        <span class="header-tip">AI 多智能体电商运营平台 · v0.5.0</span>
+        <span class="header-tip">AI 多智能体电商运营平台 · v0.6.0</span>
       </el-header>
       <el-main class="app-main">
         <router-view />
@@ -44,7 +52,7 @@
 </template>
 
 <script setup>
-import { ChatDotRound, DataBoard, Goods, MagicStick, ShoppingCart } from '@element-plus/icons-vue'
+import { ChatDotRound, DataBoard, Goods, MagicStick, PriceTag, Promotion, ShoppingCart } from '@element-plus/icons-vue'
 </script>
 
 <style>

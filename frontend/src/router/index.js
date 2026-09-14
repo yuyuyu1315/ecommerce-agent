@@ -21,6 +21,18 @@ const routes = [
     meta: { title: '选品 Agent' }
   },
   {
+    path: '/pricing',
+    name: 'pricing',
+    component: () => import('../views/PricingAgent.vue'),
+    meta: { title: '定价 Agent' }
+  },
+  {
+    path: '/marketing',
+    name: 'marketing',
+    component: () => import('../views/MarketingAgent.vue'),
+    meta: { title: '营销 Agent' }
+  },
+  {
     path: '/rag',
     name: 'rag',
     component: () => import('../views/RagChat.vue'),

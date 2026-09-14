@@ -276,6 +276,41 @@ class ProductSelection(Base):
         return f"<ProductSelection({self.product_name}, {self.confidence_score})>"
 
 
+class PriceSuggestion(Base):
+    """定价建议表（AI 定价 Agent 产出，审批后生效并写入价格历史）"""
+
+    __tablename__ = "price_suggestions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    product_name = Column(String(255), nullable=False)
+    current_price = Column(Float, nullable=False)
+    recommended_price = Column(Float, nullable=False)
+    strategy = Column(String(50), nullable=True)  # 成本加成/竞争导向/需求导向/心理定价/动态定价
+    margin_percent_after = Column(Float, nullable=True)
+    confidence_score = Column(Float, default=0)
+    reason = Column(Text, nullable=True)
+    risk_level = Column(String(20), default="medium")
+    risk_factors = Column(JSON, nullable=True)
+    status = Column(String(20), default="pending")  # pending / approved / rejected
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    approved_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    approved_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    product = relationship("Product")
+
+    @property
+    def price_change_percent(self) -> float:
+        if self.current_price and self.current_price > 0:
+            return round((self.recommended_price - self.current_price) / self.current_price * 100, 2)
+        return 0
+
+    def __repr__(self):
+        return f"<PriceSuggestion({self.product_name}, {self.current_price}->{self.recommended_price}, {self.status})>"
+
+
 class Campaign(Base):
     """营销活动表"""
 

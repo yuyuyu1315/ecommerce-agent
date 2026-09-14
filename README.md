@@ -12,7 +12,7 @@
 | 2 | Agent：选品 Agent（接 DeepSeek）+ API | ✅ 完成（v0.3.0） |
 | 3 | RAG：ChromaDB 知识库 + 问答 | ✅ 完成（v0.4.0） |
 | 4 | 前端：Vue3 + Element Plus 看板 + Agent 页面 | ✅ 完成（v0.5.0） |
-| 5 | 补齐定价/营销 Agent + 全部页面 + 联调 | ⏳ 待做 |
+| 5 | 定价/营销 Agent + 前端页面 + 全链路联调 | ✅ 完成（v0.6.0） |
 | 6 | Docker 部署（可选） | ⏳ 待做 |
 
 ## 目录结构
@@ -49,7 +49,7 @@ D:\nodejs\npm.cmd run dev
 ```
 
 - 前端地址：http://localhost:5173 （/api 自动代理到 8001）
-- 页面：数据看板（指标卡 + ECharts 图表）/ 产品管理（含竞品与价格历史）/ 选品 Agent（真实调用 DeepSeek）/ 知识问答（RAG 带来源）
+- 页面：数据看板（指标卡 + ECharts 图表）/ 产品管理（含竞品与价格历史）/ 选品 Agent / 定价 Agent（审批生效写入价格历史）/ 营销 Agent（生成策划方案 + 文案）/ 知识问答（RAG 带来源）
 
 ## 运行方法（后端）
 
@@ -77,6 +77,31 @@ POST /api/agents/selection/analyze
 
 # 审批选品建议
 POST /api/agents/selection/{id}/approve
+```
+
+## Agent 接口（定价 / 营销）
+
+```bash
+# 定价分析（真实调用 DeepSeek，结果写入 price_suggestions）
+POST /api/agents/pricing/analyze
+# body: {"product_id": 1, "params": {"user_id": 2}}
+
+# 定价建议列表（可按 status 过滤）
+GET /api/agents/pricing?status=pending
+
+# 审批定价（更新产品售价 + 写入 price_history）
+POST /api/agents/pricing/{id}/approve
+
+# 驳回定价建议
+POST /api/agents/pricing/{id}/reject
+
+# 营销策划（生成方案 + 文案，更新活动信息）
+POST /api/agents/marketing/analyze
+# body: {"campaign_id": 1, "params": {"user_id": 2}}
+
+# 活动列表 / 详情（含 AI 文案）
+GET /api/agents/marketing/campaigns
+GET /api/agents/marketing/campaigns/{id}
 ```
 
 ## RAG 接口
