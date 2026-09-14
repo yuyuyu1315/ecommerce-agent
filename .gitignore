@@ -11,6 +11,9 @@ logs/
 # 向量模型缓存（USERPROFILE 重定向目录）
 .home/
 
+# npm 缓存（本地缓存不提交）
+.npm-cache/
+
 # 密钥
 .env
 
