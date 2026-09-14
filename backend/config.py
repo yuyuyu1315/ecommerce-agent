@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # ============ 应用基础配置 ============
     APP_NAME: str = Field(default="电商运营Agent", description="应用名称")
-    APP_VERSION: str = Field(default="0.4.0", description="版本号")
+    APP_VERSION: str = Field(default="0.5.0", description="版本号")
     DEBUG: bool = Field(default=False, description="调试模式")
     SECRET_KEY: str = Field(default="change-me-in-production", description="密钥")
 

@@ -11,7 +11,7 @@
 | 1 | 数据层：SQLAlchemy 模型 + 种子数据 + 基础 API | ✅ 完成（v0.2.0） |
 | 2 | Agent：选品 Agent（接 DeepSeek）+ API | ✅ 完成（v0.3.0） |
 | 3 | RAG：ChromaDB 知识库 + 问答 | ✅ 完成（v0.4.0） |
-| 4 | 前端：Vue3 + Element Plus 看板 + 聊天页 | ⏳ 待做 |
+| 4 | 前端：Vue3 + Element Plus 看板 + Agent 页面 | ✅ 完成（v0.5.0） |
 | 5 | 补齐定价/营销 Agent + 全部页面 + 联调 | ⏳ 待做 |
 | 6 | Docker 部署（可选） | ⏳ 待做 |
 
@@ -39,6 +39,17 @@ ecommerce-agent/
 ├── tests/
 └── requirements.txt
 ```
+
+## 运行方法（前端）
+
+```powershell
+# 启动前端开发服务器（需后端 8001 已启动）
+cd /d D:\ecommerce-agent\frontend
+D:\nodejs\npm.cmd run dev
+```
+
+- 前端地址：http://localhost:5173 （/api 自动代理到 8001）
+- 页面：数据看板（指标卡 + ECharts 图表）/ 产品管理（含竞品与价格历史）/ 选品 Agent（真实调用 DeepSeek）/ 知识问答（RAG 带来源）
 
 ## 运行方法（后端）
 
