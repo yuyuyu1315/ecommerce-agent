@@ -9,7 +9,7 @@
 |---|---|---|
 | 0 | 项目骨架：目录 / venv / 依赖 / SQL 建库 / 后端可启动 | ✅ 完成（v0.1.0） |
 | 1 | 数据层：SQLAlchemy 模型 + 种子数据 + 基础 API | ✅ 完成（v0.2.0） |
-| 2 | Agent：选品 Agent（接 DeepSeek）+ API | ⏳ 待做 |
+| 2 | Agent：选品 Agent（接 DeepSeek）+ API | ✅ 完成（v0.3.0） |
 | 3 | RAG：ChromaDB 知识库 + 问答 | ⏳ 待做 |
 | 4 | 前端：Vue3 + Element Plus 看板 + 聊天页 | ⏳ 待做 |
 | 5 | 补齐定价/营销 Agent + 全部页面 + 联调 | ⏳ 待做 |
@@ -25,7 +25,8 @@ ecommerce-agent/
 │   ├── config.py       # 配置（.env 读取）
 │   ├── database.py     # 异步 SQLAlchemy
 │   ├── models/         # SQLAlchemy 模型（user/product/knowledge，14 表）
-│   ├── api/            # 路由（products / dashboard）
+│   ├── agents/         # Agent（base 基类 + selection 选品 Agent）
+│   ├── api/            # 路由（products / dashboard / agents）
 │   ├── seed.py         # 种子数据脚本
 │   └── (agents/ rag/ ... 后续阶段补齐)
 ├── frontend/           # 前端（Vue 3，待建）
@@ -53,6 +54,19 @@ python -m uvicorn backend.main:app --reload --port 8001
 - 健康检查：http://127.0.0.1:8001/health
 - 产品列表：http://127.0.0.1:8001/api/products
 - 看板汇总：http://127.0.0.1:8001/api/dashboard/summary
+- 选品记录：http://127.0.0.1:8001/api/agents/selection
+- Agent 任务：http://127.0.0.1:8001/api/agents/tasks
+
+## Agent 接口
+
+```bash
+# 选品分析（真实调用 DeepSeek，结果写入 product_selections）
+POST /api/agents/selection/analyze
+# body: {"category": "连衣裙", "params": {"user_id": 2}}
+
+# 审批选品建议
+POST /api/agents/selection/{id}/approve
+```
 
 ## 种子数据
 

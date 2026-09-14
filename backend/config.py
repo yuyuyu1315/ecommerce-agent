@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # ============ 应用基础配置 ============
     APP_NAME: str = Field(default="电商运营Agent", description="应用名称")
-    APP_VERSION: str = Field(default="0.1.0", description="版本号")
+    APP_VERSION: str = Field(default="0.3.0", description="版本号")
     DEBUG: bool = Field(default=False, description="调试模式")
     SECRET_KEY: str = Field(default="change-me-in-production", description="密钥")
 
@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = Field(default=None, description="API密钥")
     OPENAI_MODEL: str = Field(default="deepseek-flash", description="模型名称")
     OPENAI_BASE_URL: str = Field(default="https://api.deepseek.com", description="API地址")
+    LLM_TEMPERATURE: float = Field(default=0.3, description="LLM 采样温度")
 
     # 智谱 GLM（备选）
     ZHIPU_API_KEY: Optional[str] = Field(default=None)
