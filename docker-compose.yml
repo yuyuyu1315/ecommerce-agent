@@ -1,0 +1,62 @@
+# ============================================================
+# 电商运营 Agent - Docker Compose（生产部署）
+# 用法：docker compose up -d --build
+# 访问：http://localhost:8080 （前端） / http://localhost:8000/docs （后端）
+# 说明：OPENAI_API_KEY 从项目根 .env 自动读取（docker compose 变量替换）
+# ============================================================
+services:
+  # ---------- PostgreSQL 15（数据存储） ----------
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecommerce-postgres
+    environment:
+      POSTGRES_USER: ecommerce
+      POSTGRES_PASSWORD: ecommerce123
+      POSTGRES_DB: ecommerce
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecommerce -d ecommerce"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  # ---------- 后端 API（FastAPI） ----------
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: ecommerce-backend
+    environment:
+      # 容器内使用 PostgreSQL；SQLAlchemy 自动建表（create_all）
+      DATABASE_URL: postgresql+asyncpg://ecommerce:ecommerce123@postgres:5432/ecommerce
+      # LLM 密钥从项目根 .env 注入（docker compose 自动替换 ${OPENAI_API_KEY}）
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: deepseek-flash
+      OPENAI_BASE_URL: https://api.deepseek.com
+      SEED_ON_START: "true"
+    volumes:
+      # 向量库持久化（避免容器重建后重新下载模型/重建索引）
+      - ./data/chromadb:/app/data/chromadb
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------- 前端（Nginx 托管 + 反代） ----------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ecommerce-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:

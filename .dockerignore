@@ -1,0 +1,14 @@
+# 后端构建上下文（项目根目录）排除项
+.git
+.venv
+data
+logs
+.home
+.npm-cache
+node_modules
+frontend
+sql
+*.db
+__pycache__
+*.pyc
+.pytest_cache

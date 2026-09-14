@@ -13,7 +13,7 @@
 | 3 | RAG：ChromaDB 知识库 + 问答 | ✅ 完成（v0.4.0） |
 | 4 | 前端：Vue3 + Element Plus 看板 + Agent 页面 | ✅ 完成（v0.5.0） |
 | 5 | 定价/营销 Agent + 前端页面 + 全链路联调 | ✅ 完成（v0.6.0） |
-| 6 | Docker 部署（可选） | ⏳ 待做 |
+| 6 | Docker 部署包（compose 一键启动） | ✅ 完成（v0.6.0） |
 
 ## 目录结构
 
@@ -120,6 +120,23 @@ GET /api/rag/documents
 
 > 向量模型：Chroma 内置 ONNX MiniLM（384 维，模型缓存位于 `D:\ecommerce-agent\.home\.cache\chroma`）。
 > 中文语义检索如需更强召回，可后续换装 BGE 中文向量模型。
+
+## Docker 部署（生产环境）
+
+项目提供完整 Docker 部署包（PostgreSQL 15 + 后端 + 前端 Nginx），在有 Docker 的机器上一键启动：
+
+```bash
+# 在项目根目录（D:\ecommerce-agent）执行；OPENAI_API_KEY 自动从根 .env 读取
+docker compose up -d --build
+```
+
+- 前端：http://localhost:8080 （Nginx 托管，/api 自动反代到后端）
+- 后端 API 文档：http://localhost:8000/docs
+- 数据库：PostgreSQL 15（数据卷 pgdata 持久化）
+- 初始化：后端启动时自动建表（SQLAlchemy create_all）+ 幂等导入种子数据（SEED_ON_START）
+- 向量库：./data/chromadb 挂载持久化
+
+> ⚠️ 说明：本机因"软件只装 D 盘"约束未安装 Docker Desktop，compose 已通过 YAML 结构校验与容器环境变量覆盖模拟（DATABASE_URL/API Key 均验证），未在本机端到端执行；在任何装有 Docker 的机器上运行即可。
 
 ## 种子数据
 
