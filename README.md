@@ -1,55 +1,80 @@
 # 电商运营 Agent（E-commerce Operations Agent）
 
 面向中小电商的 **AI 多智能体运营系统**：选品 / 定价 / 营销 三大 Agent + RAG 知识库 + 数据看板。
-方案来源：飞书知识库《Agent项目-电商运营Agent》，按新版依赖与本地环境落地实现。
 
-## 当前进度
+> **个人独立项目**（产品定义 · 架构设计 · 开发实现 · 测试验收 全流程负责人）
+> 2026.06 – 2026.09 完成 v0.1 → v0.6 六轮迭代，借助 AI Coding 工具辅助编程实现，可本地一键启动演示。
 
-| 阶段 | 内容 | 状态 |
-|---|---|---|
-| 0 | 项目骨架：目录 / venv / 依赖 / SQL 建库 / 后端可启动 | ✅ 完成（v0.1.0） |
-| 1 | 数据层：SQLAlchemy 模型 + 种子数据 + 基础 API | ✅ 完成（v0.2.0） |
-| 2 | Agent：选品 Agent（接 DeepSeek）+ API | ✅ 完成（v0.3.0） |
-| 3 | RAG：ChromaDB 知识库 + 问答 | ✅ 完成（v0.4.0） |
-| 4 | 前端：Vue3 + Element Plus 看板 + Agent 页面 | ✅ 完成（v0.5.0） |
-| 5 | 定价/营销 Agent + 前端页面 + 全链路联调 | ✅ 完成（v0.6.0） |
-| 6 | Docker 部署包（compose 一键启动） | ✅ 完成（v0.6.0） |
+## 项目简介
+
+电商运营长期依赖人工经验，选品、定价、营销决策缺乏数据支撑、效率低、难以沉淀方法。本项目用 **多智能体（Multi-Agent）+ RAG 检索增强** 构建一个可对话的 AI 运营助手，把运营决策从"拍脑袋"变为"数据 + 模型"驱动：
+
+| 功能模块 | 说明 |
+|---|---|
+| 选品 Agent | 基于商品与竞品数据生成选品建议，支持审批生效、写入决策记录 |
+| 定价 Agent | 输出定价建议，审批后自动更新售价并写入价格历史，可追溯 |
+| 营销 Agent | 生成营销策划方案与推广文案 |
+| 知识问答（RAG） | 基于业务知识库与商品数据检索增强回答，带来源标注 |
+| 数据看板 | 指标卡 + ECharts 图表可视化运营数据（前端 Vue3） |
+
+## 技术架构
+
+```mermaid
+flowchart LR
+    U[用户] --> F[Vue3 前端<br/>数据看板 · Agent 对话页]
+    F -->|REST API| B[FastAPI 后端]
+    B --> S[业务路由<br/>products / dashboard / agents / rag]
+    S --> A1[选品 Agent]
+    S --> A2[定价 Agent]
+    S --> A3[营销 Agent]
+    S --> R[RAG 引擎<br/>ChromaDB 向量检索]
+    A1 & A2 & A3 & R --> L[DeepSeek 大模型 API]
+    A1 & A2 & A3 & R --> DB[(SQLite / PostgreSQL<br/>14 张业务表)]
+    R --> V[(ChromaDB<br/>知识向量库)]
+```
+
+## 技术栈
+
+**FastAPI · LangChain · DeepSeek · ChromaDB（RAG）· SQLAlchemy · Vue3 · Element Plus · ECharts · Docker**
+
+## 快速开始
+
+```powershell
+# 后端（端口 8001）
+$env:USERPROFILE = 'D:\ecommerce-agent\.home'
+cd /d D:\ecommerce-agent
+backend\.venv\Scripts\python.exe -m uvicorn backend.main:app --reload --reload-dir D:\ecommerce-agent --port 8001
+
+# 前端（端口 5173，需后端已启动）
+cd /d D:\ecommerce-agent\frontend
+D:\nodejs\npm.cmd run dev
+```
+
+- 前端地址：http://localhost:5173
+- 后端 API 文档：http://127.0.0.1:8001/docs
+- 演示数据：8 商品 / 12 分类 / 9 竞品价 / 8 评价 / 3 活动 / 4 知识库文档
+
+---
 
 ## 目录结构
 
 ```
 ecommerce-agent/
 ├── backend/            # 后端（FastAPI + LangChain + SQLAlchemy）
-│   ├── .venv/          # 虚拟环境（Python 3.10，D 盘）
-│   ├── main.py         # 入口（v0.2.0：数据层已接入）
+│   ├── main.py         # 入口
 │   ├── config.py       # 配置（.env 读取）
 │   ├── database.py     # 异步 SQLAlchemy
-│   ├── models/         # SQLAlchemy 模型（user/product/knowledge，14 表）
-│   ├── agents/         # Agent（base 基类 + selection 选品 Agent）
+│   ├── models/         # SQLAlchemy 模型（14 张表）
+│   ├── agents/         # Agent（base 基类 + selection 选品 / pricing 定价 / marketing 营销）
 │   ├── rag/            # RAG 引擎（ChromaDB 检索 + DeepSeek 生成）
 │   ├── api/            # 路由（products / dashboard / agents / rag）
-│   ├── seed.py         # 种子数据脚本
-│   └── (agents/ rag/ ... 后续阶段补齐)
-├── frontend/           # 前端（Vue 3，待建）
-├── sql/                # 数据库脚本
-│   ├── init_database.sql  # PostgreSQL 15 原版（Docker 部署用）
-│   ├── init_sqlite.sql    # SQLite 建库参考脚本
-│   └── seed_data.sql      # 示例数据（PostgreSQL 版）
+│   └── seed.py         # 种子数据脚本
+├── frontend/           # 前端（Vue3 + Element Plus + ECharts）
+├── sql/                # 数据库脚本（PostgreSQL / SQLite / 种子数据）
 ├── data/               # 本地数据（SQLite / ChromaDB）
 ├── tests/
 └── requirements.txt
 ```
-
-## 运行方法（前端）
-
-```powershell
-# 启动前端开发服务器（需后端 8001 已启动）
-cd /d D:\ecommerce-agent\frontend
-D:\nodejs\npm.cmd run dev
-```
-
-- 前端地址：http://localhost:5173 （/api 自动代理到 8001）
-- 页面：数据看板（指标卡 + ECharts 图表）/ 产品管理（含竞品与价格历史）/ 选品 Agent / 定价 Agent（审批生效写入价格历史）/ 营销 Agent（生成策划方案 + 文案）/ 知识问答（RAG 带来源）
 
 ## 运行方法（后端）
 
