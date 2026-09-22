@@ -27,7 +27,9 @@ from backend.models import (
     CompetitorPrice,
     KnowledgeBase,
     MarketingContent,
+    PriceSuggestion,
     Product,
+    ProductSelection,
     Review,
     User,
 )
@@ -110,7 +112,8 @@ async def run():
     async with AsyncSessionLocal() as s:
         # 清空已有业务数据（避免与旧种子混合）
         for model in [Review, CompetitorPrice, Product, CampaignProduct, MarketingContent,
-                      Campaign, KnowledgeBase, AgentTask, User, Category]:
+                      Campaign, KnowledgeBase, AgentTask, PriceSuggestion, ProductSelection,
+                      User, Category]:
             await s.execute(model.__table__.delete())
 
         # ---------- 1. 用户（系统账号，业务配置） ----------
