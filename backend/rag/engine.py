@@ -17,6 +17,12 @@ RAG_SYSTEM_PROMPT = """你是一个专业的电商运营知识助手。请基于
 2. 参考资料不足以回答时，直接说明"资料中未找到相关内容"，不要编造；
 3. 回答简洁专业，可使用分点；必要时给出可直接执行的操作建议。"""
 
+# V3 优化（评测驱动）：来源加权。
+# V2 分类型混合检索后，300 条商品文档与查询的余弦相似度常高于知识库业务文档，
+# 导致方法论文档仍被挤出 top-k（命中率 66.7% 未提升）。
+# 业务方法论属权威来源，按类型加权后融合排序（knowledge ×1.25 / product ×1.0）。
+SOURCE_WEIGHT = {"knowledge": 1.25, "product": 1.0}
+
 
 class RagEngine:
     """RAG 引擎：建索引 → 向量检索 → 增强提示 → DeepSeek 生成"""
@@ -108,24 +114,40 @@ class RagEngine:
     # ---------- 检索 ----------
 
     def retrieve(self, query: str, k: int = 4) -> List[Dict[str, Any]]:
-        """向量检索 top-k 文档"""
+        """向量检索 top-k 文档
+
+        V2→V3 优化（评测驱动）：
+        初版 top-4 检索，商品文档（描述相似度高）挤占名额，知识库无法召回（命中率 66.7%）；
+        V2 分类型混合检索后，商品文档余弦相似度仍普遍高于知识库文档，top-k 依然被商品挤占；
+        V3 引入来源加权：知识库（业务方法论，权威来源）×1.25，商品（数据条目，参考来源）×1.0，
+        加权后融合排序取 top-k。
+        """
         if self.collection.count() == 0:
             return []
-        res = self.collection.query(query_texts=[query], n_results=k)
-        out: List[Dict[str, Any]] = []
-        for i, doc_id in enumerate(res["ids"][0]):
-            meta = res["metadatas"][0][i]
-            out.append(
-                {
-                    "id": doc_id,
-                    "title": meta.get("title", doc_id),
-                    "category": meta.get("category", ""),
-                    "type": meta.get("type", ""),
-                    "content": res["documents"][0][i][:800],
-                    "score": round(1 - res["distances"][0][i], 4),  # 余弦相似度
-                }
-            )
-        return out
+        merged: List[Dict[str, Any]] = []
+        for type_filter in ("knowledge", "product"):
+            try:
+                res = self.collection.query(
+                    query_texts=[query], n_results=k, where={"type": type_filter}
+                )
+                for i, doc_id in enumerate(res["ids"][0]):
+                    meta = res["metadatas"][0][i]
+                    merged.append(
+                        {
+                            "id": doc_id,
+                            "title": meta.get("title", doc_id),
+                            "category": meta.get("category", ""),
+                            "type": meta.get("type", ""),
+                            "content": res["documents"][0][i][:800],
+                            "score": round(
+                                (1 - res["distances"][0][i]) * SOURCE_WEIGHT.get(type_filter, 1.0), 4
+                            ),
+                        }
+                    )
+            except Exception:  # noqa: BLE001
+                continue
+        merged.sort(key=lambda x: x["score"], reverse=True)
+        return merged[:k]
 
     # ---------- 问答 ----------
 
