@@ -27,7 +27,7 @@
 | 用途 | 选品 / 定价 / 营销决策、RAG 知识库检索、看板可视化 |
 | 口径 | 商品/价格/销量/市场 = 真实；分类/竞品 = 派生；成本/库存/评分 = 估算（透明标注） |
 | 局限 | 数据集无评价字段（reviews 表为空，如实标注）；时间跨度 2010-12 ~ 2011-12（英国市场） |
-| 评测 | 选品回测命中真实 Top50 达 50%、Top10 月销 2.6 倍于均值；RAG 命中率 80%、拒答正确率 100% |
+| 评测 | 选品回测：规则 Top10 命中真实 Top10 达 30%（随机基线约 3%）、Top10 月销 2.6 倍于均值；RAG 命中率 80%、拒答正确率 100% |
 
 ## 技术架构
 
@@ -81,7 +81,7 @@ ecommerce-agent/
 │   ├── rag/            # RAG 引擎（ChromaDB 检索 + DeepSeek 生成）
 │   ├── api/            # 路由（products / dashboard / agents / rag）
 │   ├── import_uci.py   # UCI 真实数据导入脚本（真实/派生/估算口径透明标注）
-│   └── eval_rag.py     # RAG 评测脚本（30 条问答对，输出指标报告）
+│   └── eval_rag.py     # RAG 评测脚本（36 条问答对，输出指标报告）
 ├── docs/               # 产品决策文档（PAR）· RAG 评测报告与明细
 ├── frontend/           # 前端（Vue3 + Element Plus + ECharts）
 ├── sql/                # 数据库脚本（PostgreSQL / SQLite / 种子数据）
@@ -207,7 +207,7 @@ python -m backend.import_uci   # 在 D:\ecommerce-agent 下执行
 
 | 指标 | 结果 |
 |---|---|
-| 规则 Top50 命中真实 Top50 | **50%** |
+| 规则 Top10 命中真实 Top10 | **30%**（随机基线约 3%，提升约 9 倍） |
 | 规则 Top10 平均月销量 vs 全库 | **2.6 倍**（1904 vs 741） |
 | LLM 选品 Agent 命中真实 Top50 | **100%**（3/3 品类实测，真实 DeepSeek 调用） |
 
